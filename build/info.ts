@@ -1,7 +1,7 @@
 import type { Plugin } from "vite";
 import dayjs, { Dayjs } from "dayjs";
 import duration from "dayjs/plugin/duration";
-import { green, blue, bold } from "picocolors";
+import { green, bold } from "picocolors";
 import { getPackageSize } from "@pureadmin/utils";
 dayjs.extend(duration);
 
