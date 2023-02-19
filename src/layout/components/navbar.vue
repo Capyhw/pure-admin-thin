@@ -5,12 +5,12 @@ import mixNav from "./sidebar/mixNav.vue";
 import { useNav } from "@/layout/hooks/useNav";
 import Breadcrumb from "./sidebar/breadCrumb.vue";
 import topCollapse from "./sidebar/topCollapse.vue";
-import LogoutCircleRLine from "@iconify-icons/ri/logout-circle-r-line";
 import Setting from "@iconify-icons/ri/settings-3-line";
 
 const {
   layout,
   device,
+  editInfo,
   logout,
   onPanel,
   pureApp,
@@ -43,7 +43,7 @@ const {
       <Search />
       <!-- 通知 -->
       <Notice id="header-notice" />
-      <!-- 退出登录 -->
+      <!-- 个人信息/退出登录 -->
       <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover select-none">
           <img
@@ -54,10 +54,17 @@ const {
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
+            <el-dropdown-item @click="editInfo">
+              <IconifyIconOnline
+                icon="material-symbols:edit"
+                style="margin-right: 5px"
+              />
+              个人信息
+            </el-dropdown-item>
             <el-dropdown-item @click="logout">
-              <IconifyIconOffline
-                :icon="LogoutCircleRLine"
-                style="margin: 5px"
+              <IconifyIconOnline
+                icon="material-symbols:logout"
+                style="margin-right: 5px"
               />
               退出系统
             </el-dropdown-item>
@@ -129,7 +136,7 @@ const {
   ::v-deep(.el-dropdown-menu__item) {
     min-width: 100%;
     display: inline-flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 }
 </style>

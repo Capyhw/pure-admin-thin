@@ -28,7 +28,10 @@ const { title } = useNav();
         class="sidebar-logo-link"
         to="/"
       >
-        <FontIcon icon="team-iconlogo" svg style="width: 35px; height: 35px" />
+        <IconifyIconOnline
+          icon="mdi:book-edit-outline"
+          style="width: 35px; height: 35px; color: #1890ff"
+        />
         <span class="sidebar-title">{{ title }}</span>
       </router-link>
     </transition>

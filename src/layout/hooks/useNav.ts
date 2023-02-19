@@ -53,6 +53,11 @@ export function useNav() {
     else document.title = meta.title;
   }
 
+  /** 编辑个人信息 */
+  function editInfo() {
+    router.push("/user/info");
+  }
+
   /** 退出登录 */
   function logout() {
     useUserStoreHook().logOut();
@@ -125,6 +130,7 @@ export function useNav() {
     title,
     device,
     layout,
+    editInfo,
     logout,
     routers,
     $storage,

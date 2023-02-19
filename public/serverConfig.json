@@ -1,6 +1,6 @@
 {
   "Version": "3.9.7",
-  "Title": "PureAdmin",
+  "Title": "作业批改系统",
   "FixedHeader": true,
   "HiddenSideBar": false,
   "MultiTagsCache": false,
@@ -14,7 +14,7 @@
   "SidebarStatus": true,
   "EpThemeColor": "#409EFF",
   "ShowLogo": true,
-  "ShowModel": "smart",
+  "ShowModel": "small",
   "MenuArrowIconNoTransition": true,
   "CachingAsyncRoutes": false,
   "TooltipEffect": "light"

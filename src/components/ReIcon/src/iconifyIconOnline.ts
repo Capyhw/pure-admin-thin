@@ -13,6 +13,7 @@ export default defineComponent({
   },
   render() {
     const attrs = this.$attrs;
+
     return h(
       IconifyIcon,
       {
