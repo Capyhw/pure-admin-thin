@@ -50,23 +50,16 @@ const activeName = ref("1");
       <el-collapse v-model="activeName" accordion>
         <el-collapse-item title="Consistency" name="1">
           <div>
-            Consistent with real life: in line with the process and logic of
-            real life, and comply with languages and habits that the users are
-            used to;
-          </div>
-          <div>
-            Consistent within interface: all elements should be consistent, such
-            as: design style, icons and texts, position of elements, etc.
+            <h1>作业标题</h1>
+            <div>作业内容</div>
+            <span>截止日期：2023/02/02</span>
           </div>
         </el-collapse-item>
         <el-collapse-item title="Feedback" name="2">
           <div>
-            Operation feedback: enable the users to clearly perceive their
-            operations by style updates and interactive effects;
-          </div>
-          <div>
-            Visual feedback: reflect current state by updating or rearranging
-            elements of the page.
+            <h1>作业标题</h1>
+            <div>作业内容</div>
+            <span>截止日期：2023/02/02</span>
           </div>
         </el-collapse-item>
         <el-collapse-item title="Efficiency" name="3">
