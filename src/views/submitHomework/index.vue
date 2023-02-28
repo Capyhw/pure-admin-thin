@@ -28,63 +28,100 @@ const shortcuts = [
     }
   }
 ];
-/** 手风琴当前展开的*/
-const activeName = ref("1");
+/** 展开的Collapse*/
+const activeName = ref(["1", "2"]);
+/** 是否启用手风琴模式 */
+const accordion = ref(false);
+/** 作业是否提交 */
+const isSubmit = ref(false);
+const isSubmit2 = ref(false);
+
+/** 后端返回的截止时间 */
+const deadline = ref(1977323487467);
 </script>
 
 <template>
   <div>
     <h1>提交作业</h1>
     <div class="header">
-      <span class="datePickerTitle">根据日期筛选</span>
-      <el-date-picker
-        v-model="value"
-        type="daterange"
-        :shortcuts="shortcuts"
-        range-separator="⇒"
-        start-placeholder="开始时间"
-        end-placeholder="结束时间"
+      <el-switch
+        v-model="accordion"
+        inline-prompt
+        active-text="同时只能展开一项"
+        inactive-text="同时可展开多项"
       />
+      <div>
+        <span class="datePickerTitle">根据日期筛选</span>
+        <el-date-picker
+          v-model="value"
+          type="daterange"
+          :shortcuts="shortcuts"
+          range-separator="⇒"
+          start-placeholder="开始时间"
+          end-placeholder="结束时间"
+        />
+      </div>
     </div>
     <div class="demo-collapse">
-      <el-collapse v-model="activeName" accordion>
-        <el-collapse-item title="Consistency" name="1">
+      <el-collapse v-model="activeName" :accordion="accordion">
+        <el-collapse-item title="作业标题" name="1">
           <div>
             <h1>作业标题</h1>
             <div>作业内容</div>
-            <span>截止日期：2023/02/02</span>
+
+            <el-button
+              v-if="!isSubmit"
+              type="success"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >提交作业
+            </el-button>
+            <el-button
+              v-else
+              type="success"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >查看已提交的作业
+            </el-button>
+            <el-button
+              type="primary"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >编辑已提交的作业
+            </el-button>
+            <el-button
+              type="danger"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >删除已提交的作业
+            </el-button>
+            <span class="deadline">截止日期：2023/02/02</span>
           </div>
         </el-collapse-item>
-        <el-collapse-item title="Feedback" name="2">
+        <el-collapse-item title="作业标题" name="2">
           <div>
             <h1>作业标题</h1>
             <div>作业内容</div>
-            <span>截止日期：2023/02/02</span>
-          </div>
-        </el-collapse-item>
-        <el-collapse-item title="Efficiency" name="3">
-          <div>
-            Simplify the process: keep operating process simple and intuitive;
-          </div>
-          <div>
-            Definite and clear: enunciate your intentions clearly so that the
-            users can quickly understand and make decisions;
-          </div>
-          <div>
-            Easy to identify: the interface should be straightforward, which
-            helps the users to identify and frees them from memorizing and
-            recalling.
-          </div>
-        </el-collapse-item>
-        <el-collapse-item title="Controllability" name="4">
-          <div>
-            Decision making: giving advices about operations is acceptable, but
-            do not make decisions for the users;
-          </div>
-          <div>
-            Controlled consequences: users should be granted the freedom to
-            operate, including canceling, aborting or terminating current
-            operation.
+
+            <el-button
+              v-if="!isSubmit2"
+              type="success"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >提交作业
+            </el-button>
+            <el-button
+              v-else
+              type="success"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >查看已提交的作业
+            </el-button>
+            <el-button
+              type="primary"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >编辑已提交的作业
+            </el-button>
+            <el-button
+              type="danger"
+              :disabled="Date.now() - deadline > 0 ? true : false"
+              >删除已提交的作业
+            </el-button>
+            <span class="deadline">截止日期：2023/02/02</span>
           </div>
         </el-collapse-item>
       </el-collapse>
@@ -96,9 +133,9 @@ const activeName = ref("1");
 
 <style scoped lang="scss">
 .header {
-  //靠右边
-  text-align: right;
-  margin-right: 20px;
+  display: flex;
+  justify-content: space-between;
+
   .datePickerTitle {
     margin-right: 20px;
   }
@@ -110,8 +147,13 @@ const activeName = ref("1");
       padding: 20px;
     }
     .el-collapse-item__content {
-      div ::v-deep() {
+      > div ::v-deep() {
         padding: 20px;
+
+        > span {
+          float: right;
+          color: red;
+        }
       }
     }
   }
