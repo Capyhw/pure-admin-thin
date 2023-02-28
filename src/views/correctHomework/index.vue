@@ -135,7 +135,7 @@
               @change="handleLineWidthChange"
             />
           </div>
-          <div>
+          <div class="mark-paper__mousemode">
             模式选择：
             <el-radio-group
               class="radio-group"
@@ -147,7 +147,7 @@
               <el-radio :label="2">橡皮擦</el-radio>
             </el-radio-group>
           </div>
-          <div>
+          <div class="mark-paper__colorselect">
             颜色选择：
             <div class="color-picker__container" v-if="colorList">
               <el-tooltip
@@ -167,8 +167,8 @@
               </el-tooltip>
             </div>
           </div>
+          <el-button @click="handleSaveClick">保存图片</el-button>
         </div>
-        <el-button @click="handleSaveClick">保存图片</el-button>
       </div>
     </el-dialog>
   </div>
@@ -259,7 +259,6 @@ watch(canvasCurrentHistory, () => {
   );
 });
 watch(canvasRef, () => {
-  // handleCanvas();
   handleMouseModeChange(mouseMode.value);
 });
 const fillImage = async () => {
@@ -648,15 +647,20 @@ $cardWidth: 300px;
   }
 }
 
-.mark-paper__wrap {
-  overflow: hidden;
-}
-.mark-paper__sider {
-  .mark-paper__action {
-    display: flex;
-    align-items: center;
-    .mark-paper__action__slider {
-      width: 100px;
+.mark-paper__container {
+  display: flex;
+  justify-content: space-between;
+  .mark-paper__wrap {
+    overflow: hidden;
+  }
+  .mark-paper__sider {
+    margin-left: 10px;
+    .mark-paper__action {
+      display: flex;
+      align-items: center;
+      .mark-paper__action__slider {
+        width: 100px;
+      }
     }
   }
 }
