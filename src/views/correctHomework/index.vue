@@ -46,136 +46,136 @@
       </template>
     </el-upload>
 
-    <el-dialog v-model="dialogVisible" width="75%" center align-center>
-      <!-- <img :src="dialogImageUrl" alt="Preview Image" /> -->
-      <div class="mark-paper__container" ref="containerRef">
-        <div class="mark-paper__wrap" ref="wrapRef">
-          <div
-            class="mark-paper__mask"
-            :style="{ display: isLoading ? 'flex' : 'none' }"
-          >
-            图片加载中
-          </div>
-          <canvas ref="canvasRef" class="mark-paper__canvas">
-            <p>很可惜，这个东东与您的电脑不搭！</p>
-          </canvas>
-        </div>
-        <div class="mark-paper__sider">
-          <div>
-            选择作业：
-            <el-select @change="handlePaperChange">
-              <el-option-group label="17软件一班">
-                <el-option value="xueshengjia">学生甲</el-option>
-                <el-option value="xueshengyi">学生乙</el-option>
-              </el-option-group>
-              <el-option-group label="17软件二班">
-                <el-option value="xueshengbing">学生丙</el-option>
-              </el-option-group>
-            </el-select>
-          </div>
-          <div class="mark-paper__action">
-            <span>画布操作：</span>
-            <div class="mark-paper__action">
-              <el-tooltip content="撤销">
-                <IconifyIconOnline
-                  icon="ri:arrow-go-back-fill"
-                  width="20px"
-                  height="20px"
-                  @Click="handleRollBack"
-                />
-              </el-tooltip>
-              <el-tooltip content="恢复">
-                <IconifyIconOnline
-                  icon="ri:arrow-go-forward-fill"
-                  width="20px"
-                  height="20px"
-                  @Click="handleRollForward"
-                />
-              </el-tooltip>
-              <el-popconfirm
-                title="确定清空画布吗？"
-                @confirm="handleClearCanvasClick"
-                confirm-button-text="确定"
-                cancel-button-text="取消"
-              >
-                <template #reference>
-                  <div>
-                    <el-tooltip content="清空">
-                      <IconifyIconOnline
-                        icon="icon-park-twotone:clear"
-                        width="20px"
-                        height="20px"
-                      />
-                    </el-tooltip>
-                  </div>
-                </template>
-              </el-popconfirm>
-            </div>
-          </div>
-          <div class="mark-paper__action">
-            <span>画布缩放：</span>
-            <el-slider
-              class="mark-paper__action__slider"
-              :min="0.1"
-              :max="2.0"
-              :step="0.1"
-              v-model="canvasScale"
-              :format-tooltip="value => `${value.toFixed(2)}x`"
-              @change="handleScaleChange"
-            />
-          </div>
-          <div class="mark-paper__action">
-            <span>画笔大小：</span>
-            <el-slider
-              class="mark-paper__action__slider"
-              :min="1"
-              :max="9"
-              v-model="lineWidth"
-              :format-tooltip="value => `${value}px`"
-              @change="handleLineWidthChange"
-            />
-          </div>
-          <div class="mark-paper__mousemode">
-            模式选择：
-            <el-radio-group
-              class="radio-group"
-              @change="handleMouseModeChange"
-              v-model="mouseMode"
-            >
-              <el-radio :label="0">移动</el-radio>
-              <el-radio :label="1">画笔</el-radio>
-              <el-radio :label="2">橡皮擦</el-radio>
-            </el-radio-group>
-          </div>
-          <div class="mark-paper__colorselect">
-            颜色选择：
-            <div class="color-picker__container" v-if="colorList">
-              <el-tooltip
-                v-for="(color, index) in colorList"
-                :key="index"
-                placement="bottom"
-                :content="color"
-              >
-                <span
-                  class="demo-color-block"
-                  @click="handleColorChange(color)"
-                >
-                  <el-color-picker v-model="colorList[index]" />
-                </span>
-
-                />
-              </el-tooltip>
-            </div>
-          </div>
-          <el-button @click="handleSaveClick">保存图片</el-button>
-        </div>
+    <!-- <img :src="dialogImageUrl" alt="Preview Image" /> -->
+    <div class="mark-paper__container" ref="containerRef">
+      <div class="mark-paper__wrap" ref="wrapRef">
+        <!-- <div class="mark-paper__mask" v-show="isLoading">图片加载中</div> -->
+        <canvas
+          v-loading="isLoading"
+          ref="canvasRef"
+          class="mark-paper__canvas"
+        >
+          <p>很可惜，这个东东与您的电脑不搭！</p>
+        </canvas>
       </div>
-    </el-dialog>
+      <div class="mark-paper__sider">
+        <div class="mark-paper__homeselect">
+          选择作业：
+          <el-select @change="handlePaperChange" v-model="fillImageSrc">
+            <el-option-group
+              v-for="group in fillImageList"
+              :label="group.label"
+              :key="group.label"
+            >
+              <el-option
+                v-for="item in group.options"
+                :label="item.label"
+                :key="item.value"
+                :value="item.value"
+              />
+            </el-option-group>
+          </el-select>
+        </div>
+        <div class="mark-paper__action">
+          <span>画布操作：</span>
+          <div class="mark-paper__action">
+            <el-tooltip content="撤销">
+              <IconifyIconOnline
+                icon="ri:arrow-go-back-fill"
+                width="20px"
+                height="20px"
+                @Click="handleRollBack"
+              />
+            </el-tooltip>
+            <el-tooltip content="恢复">
+              <IconifyIconOnline
+                icon="ri:arrow-go-forward-fill"
+                width="20px"
+                height="20px"
+                @Click="handleRollForward"
+              />
+            </el-tooltip>
+            <el-popconfirm
+              title="确定清空画布吗？"
+              @confirm="handleClearCanvasClick"
+              confirm-button-text="确定"
+              cancel-button-text="取消"
+            >
+              <template #reference>
+                <div>
+                  <el-tooltip content="清空">
+                    <IconifyIconOnline
+                      icon="icon-park-twotone:clear"
+                      width="20px"
+                      height="20px"
+                    />
+                  </el-tooltip>
+                </div>
+              </template>
+            </el-popconfirm>
+          </div>
+        </div>
+        <div class="mark-paper__action">
+          <span>画布缩放：</span>
+          <el-slider
+            class="mark-paper__action__slider"
+            :min="0.1"
+            :max="2.0"
+            :step="0.1"
+            v-model="canvasScale"
+            :format-tooltip="value => `${value.toFixed(2)}x`"
+            @change="handleScaleChange"
+          />
+        </div>
+        <div class="mark-paper__action">
+          <span>画笔大小：</span>
+          <el-slider
+            class="mark-paper__action__slider"
+            :min="1"
+            :max="9"
+            v-model="lineWidth"
+            :format-tooltip="value => `${value}px`"
+            @change="handleLineWidthChange"
+          />
+        </div>
+        <div class="mark-paper__mousemode">
+          模式选择：
+          <el-radio-group
+            class="radio-group"
+            @change="handleMouseModeChange"
+            v-model="mouseMode"
+          >
+            <el-radio :label="0">移动</el-radio>
+            <el-radio :label="1">画笔</el-radio>
+            <el-radio :label="2">橡皮擦</el-radio>
+          </el-radio-group>
+        </div>
+        <div class="mark-paper__colorselect">
+          颜色选择：
+          <div class="color-picker__container" v-if="colorList">
+            <el-tooltip
+              v-for="(color, index) in colorList"
+              :key="index"
+              placement="bottom"
+              :content="color"
+            >
+              <span class="demo-color-block" @click="handleColorChange(color)">
+                <el-color-picker v-model="colorList[index]" />
+              </span>
+
+              />
+            </el-tooltip>
+          </div>
+        </div>
+        <el-button @click="handleSaveClick">保存图片</el-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onBeforeUnmount } from "vue";
+import { useDebounceFn } from "@vueuse/core";
 // import { Delete, Download, Plus, ZoomIn } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import type { UploadFile } from "element-plus";
@@ -186,10 +186,9 @@ defineOptions({
   name: "CorrectHomework"
 });
 
-const dialogVisible = ref(false);
 const disabled = ref(false);
 const fileList = ref([] as UploadFile[]);
-const isLoading = ref(false);
+const isLoading = ref(true);
 /** 当前位移的距离 */
 const translatePointX = ref(0);
 const translatePointY = ref(0);
@@ -260,10 +259,10 @@ watch(canvasCurrentHistory, () => {
 });
 watch(canvasRef, () => {
   handleMouseModeChange(mouseMode.value);
+  fillImage();
+  handleCanvas();
 });
 const fillImage = async () => {
-  console.log("fillImage");
-
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
   const context: CanvasRenderingContext2D | undefined | null =
@@ -303,27 +302,23 @@ const fillImage = async () => {
     canvasHistroyList.value.push(imageData);
     canvasCurrentHistory.value = 1;
     setTimeout(() => {
-      isLoading.value = false;
+      // isLoading.value = false;
+      console.log(isLoading.value);
     }, 500);
   };
 };
-/** 监听移动*/
+/** 移动模式*/
 const handleMoveMode = (downX: number, downY: number) => {
-  console.log("handleMoveMode");
-
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
-
   if (!canvas || !wrap || mouseMode.value !== 0) return;
 
   // 为容器添加移动事件，可以在空白处移动图片
   wrap.onmousemove = (event: MouseEvent) => {
     const moveX: number = event.pageX;
     const moveY: number = event.pageY;
-
     translatePointX.value = fillStartPointX.value + (moveX - downX);
     translatePointY.value = fillStartPointY.value + (moveY - downY);
-
     canvas.style.transform = `scale(${canvasScale.value},${canvasScale.value}) translate(${translatePointX.value}px,${translatePointY.value}px)`;
   };
 
@@ -338,16 +333,17 @@ const handleMoveMode = (downX: number, downY: number) => {
     fillStartPointY.value = fillStartPointY.value + (upY - downY);
   };
 };
+
+/** 计算缩放坐标 */
 const generateLinePoint = (x: number, y: number) => {
-  console.log("generateLinePoint");
-
   const { value: wrap } = wrapRef;
-
   const wrapWidth: number = wrap?.offsetWidth || 0;
   const wrapHeight: number = wrap?.offsetHeight || 0;
+
   // 缩放位移坐标变化规律
   // (transformOrigin - downX) / scale * (scale-1) + downX - translateX = pointX
-  x -= 185;
+  x -= mainContainerMarginLeft.value;
+  y -= 85;
   const pointX: number =
     ((wrapWidth / 2 - x) / canvasScale.value) * (canvasScale.value - 1) +
     x -
@@ -362,34 +358,29 @@ const generateLinePoint = (x: number, y: number) => {
     pointY
   };
 };
-
+/** 批改模式 */
 const handleLineMode = (downX: number, downY: number) => {
-  console.log("handleLineMode");
-
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
   const context: CanvasRenderingContext2D | undefined | null =
     canvas?.getContext("2d", { willReadFrequently: true });
   if (!canvas || !wrap || !context) return;
-  console.log(canvas.offsetLeft, canvas.offsetTop);
 
   const offsetLeft: number = canvas.offsetLeft;
   const offsetTop: number = canvas.offsetTop;
   // 减去画布偏移的距离（以画布为基准进行计算坐标）
   downX = downX - offsetLeft;
-  downY = downY - offsetTop;
+  downY = downY - offsetTop; //header
 
   const { pointX, pointY } = generateLinePoint(downX, downY);
   context.globalCompositeOperation = "source-over";
   context.beginPath();
   context.moveTo(pointX, pointY);
-
   canvas.onmousemove = null;
   canvas.onmousemove = (event: MouseEvent) => {
     const moveX: number = event.pageX - offsetLeft;
     const moveY: number = event.pageY - offsetTop;
     const { pointX, pointY } = generateLinePoint(moveX, moveY);
-    console.log(moveX, moveY, pointX, pointY);
 
     context.lineTo(pointX, pointY);
     context.stroke();
@@ -466,8 +457,6 @@ const handleEraserMode = (downX: number, downY: number) => {
 };
 /** 监听鼠标滚轮，实现缩放 */
 const handleCanvas = () => {
-  console.log("handleCanvas");
-
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
   const context: CanvasRenderingContext2D | undefined | null =
@@ -480,12 +469,9 @@ const handleCanvas = () => {
   wrap.onmousedown = function (event: MouseEvent) {
     const downX: number = event.pageX;
     const downY: number = event.pageY;
-    console.log("downx,downy", downX, downY);
 
     switch (mouseMode.value) {
       case MOVE_MODE:
-        console.log("handleMoveMode");
-
         handleMoveMode(downX, downY);
         break;
       case LINE_MODE:
@@ -521,17 +507,38 @@ const handleLineWidthChange = (value: number) => {
 const handleColorChange = (color: string) => {
   lineColor.value = color;
 };
+/** 作业选项 */
+const fillImageList = [
+  {
+    label: "一班",
+    options: [
+      {
+        value:
+          "https://img0.baidu.com/it/u=487873682,496212189&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=667",
+        label: "学生甲"
+      },
+      {
+        value:
+          "https://img2.baidu.com/it/u=3192336871,2242501657&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
+        label: "学生乙"
+      }
+    ]
+  },
+  {
+    label: "二班",
+    options: [
+      {
+        value:
+          "https://5b0988e595225.cdn.sohucs.com/images/20200310/4e3b1ff6b04f480ea6c227ab161b9bf0.jpeg",
+        label: "学生丙"
+      }
+    ]
+  }
+];
+
 /** 切换作业 */
 const handlePaperChange = (value: string) => {
-  const fillImageList = {
-    xueshengjia:
-      "https://img0.baidu.com/it/u=487873682,496212189&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=667",
-    xueshengyi:
-      "https://img2.baidu.com/it/u=3192336871,2242501657&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
-    xueshengbing:
-      "https://5b0988e595225.cdn.sohucs.com/images/20200310/4e3b1ff6b04f480ea6c227ab161b9bf0.jpeg"
-  };
-  fillImageSrc.value = fillImageList[value];
+  console.log(value);
   handleCanvas();
 };
 /** 撤销 */
@@ -596,7 +603,6 @@ const handleSaveClick = () => {
 };
 //删除图片
 const handleRemove = (file: UploadFile) => {
-  // console.log(file);
   for (let i = 0; i < fileList.value.length; i++) {
     if (fileList.value[i].uid === file.uid) {
       fileList.value.splice(i, 1);
@@ -607,14 +613,31 @@ const handleRemove = (file: UploadFile) => {
 //预览图片
 const handlePictureCardPreview = (file: UploadFile) => {
   fillImageSrc.value = file.url!;
-  dialogVisible.value = true;
 };
 //下载图片
 const handleDownload = (file: UploadFile) => {
   console.log(file);
 };
+/** 获取div .main-container的margin-left */
+const getMainContainerMarginLeft = () => {
+  const marginLeft: string = getComputedStyle(
+    document.querySelector(".main-container")
+  ).marginLeft;
+  mainContainerMarginLeft.value = parseFloat(marginLeft.replace(/[^\d]/g, ""));
+};
+/** 存储div .main-container的margin-left */
+const mainContainerMarginLeft = ref(210);
+/** 设置div main-container的margin-left监听器 */
+const observer = new ResizeObserver(
+  useDebounceFn(getMainContainerMarginLeft, 100)
+);
 onMounted(() => {
-  // handleCanvas();
+  //开始监听
+  observer.observe(document.querySelector(".main-container"));
+});
+onBeforeUnmount(() => {
+  //销毁监听
+  observer.disconnect();
 });
 </script>
 <style lang="scss" scoped>
