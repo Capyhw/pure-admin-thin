@@ -31,8 +31,8 @@
         </div>
         <div class="mark-paper__action">
           <span>画布操作：</span>
-          <div class="mark-paper__action">
-            <el-tooltip content="撤销">
+          <div class="mark-paper__actions">
+            <el-tooltip content="撤销" :hide-after="100">
               <IconifyIconOnline
                 icon="ri:arrow-go-back-fill"
                 width="20px"
@@ -40,7 +40,7 @@
                 @Click="handleRollBack"
               />
             </el-tooltip>
-            <el-tooltip content="恢复">
+            <el-tooltip content="恢复" :hide-after="100">
               <IconifyIconOnline
                 icon="ri:arrow-go-forward-fill"
                 width="20px"
@@ -56,7 +56,7 @@
             >
               <template #reference>
                 <div>
-                  <el-tooltip content="清空">
+                  <el-tooltip content="清空" :hide-after="100">
                     <IconifyIconOnline
                       icon="icon-park-twotone:clear"
                       width="20px"
@@ -110,11 +110,22 @@
               :key="index"
               placement="bottom"
               :content="color"
+              :hide-after="100"
             >
-              <span class="demo-color-block" @click="handleColorChange(color)">
-                <el-color-picker v-model="colorList[index]" />
-              </span>
+              <div
+                class="demo-color-block"
+                :class="{ select: color === lineColor }"
+              >
+                <span
+                  class="demo-color-block-inner"
+                  :style="{
+                    backgroundColor: color
+                  }"
+                  @click="handleColorChange(color)"
+                />
+              </div>
             </el-tooltip>
+            <el-color-picker v-model="lineColor" class="select" />
           </div>
         </div>
         <el-button @click="handleSaveClick">保存图片</el-button>
@@ -144,6 +155,8 @@ const fillStartPointY = ref(0);
 
 const canvasScale = ref(1);
 const canvasRef = ref(null);
+
+const isDrawing = ref(false);
 const wrapRef = ref(null);
 const containerRef = ref(null);
 const lineColor = ref("#fa4b2a");
@@ -208,6 +221,8 @@ watch(canvasRef, () => {
   handleCanvas();
 });
 const fillImage = async () => {
+  console.log(1);
+
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
   const context: CanvasRenderingContext2D | undefined | null =
@@ -215,6 +230,13 @@ const fillImage = async () => {
   const img: HTMLImageElement = new Image();
 
   if (!canvas || !wrap || !context) return;
+
+  canvas.onmousedown = () => {
+    isDrawing.value = true;
+  };
+  canvas.onmouseup = () => {
+    isDrawing.value = false;
+  };
   img.src = await urlToBase64(fillImageSrc.value);
   img.onload = () => {
     // 取中间渲染图片
@@ -252,7 +274,7 @@ const fillImage = async () => {
     }, 500);
   };
 };
-/** 移动模式*/
+/** 拖动图片模式*/
 const handleMoveMode = (downX: number, downY: number) => {
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
@@ -331,9 +353,10 @@ const handleLineMode = (downX: number, downY: number) => {
     const moveX: number = event.pageX - offsetLeft;
     const moveY: number = event.pageY - offsetTop;
     const { pointX, pointY } = generateLinePoint(moveX, moveY);
-
-    context.lineTo(pointX, pointY);
-    context.stroke();
+    if (isDrawing.value) {
+      context.lineTo(pointX, pointY);
+      context.stroke();
+    }
   };
   canvas.onmouseup = () => {
     const imageData: ImageData = context.getImageData(
@@ -493,7 +516,7 @@ const handleMouseModeChange = (value: number) => {
       break;
   }
 };
-
+/** 保存图片 */
 const handleSaveClick = () => {
   const { value: canvas } = canvasRef;
   // 可存入数据库或是直接生成图片
@@ -559,8 +582,48 @@ onBeforeUnmount(() => {
     .mark-paper__action {
       display: flex;
       align-items: center;
+      .mark-paper__actions {
+        min-width: 100px;
+        display: flex;
+        justify-content: space-between;
+      }
       .mark-paper__action__slider {
         width: 100px;
+      }
+    }
+    .mark-paper__colorselect {
+      .color-picker__container {
+        display: flex;
+        justify-content: space-between;
+        .demo-color-block {
+          display: inline-flex;
+          justify-self: center;
+          align-items: center;
+          width: 32px;
+          height: 32px;
+          border: 1px solid var(--el-border-color);
+          border-radius: 4px;
+          box-sizing: border-box;
+          padding: 4px;
+          .demo-color-block-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--el-border-radius-small);
+            border: 1px solid var(--el-text-color-secondary);
+          }
+          &:hover {
+            border-color: var(--el-color-primary);
+          }
+          &.select {
+            border-color: var(--el-color-primary);
+          }
+        }
+        ::v-deep(.el-color-picker) {
+          justify-self: flex-end;
+          .el-color-picker__trigger {
+            border-color: var(--el-color-primary);
+          }
+        }
       }
     }
   }
