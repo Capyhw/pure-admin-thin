@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import type { UploadFile } from "element-plus";
 
 defineOptions({
   // name 作为一种规范最好必须写上并且和路由的name保持一致
   name: "SubmitHomework"
 });
+const disabled = ref(false);
+
 const hasHomework = ref(true);
 const value = ref("");
 /**  快捷选择 */
@@ -35,14 +38,76 @@ const accordion = ref(false);
 /** 作业是否提交 */
 const isSubmit = ref(false);
 const isSubmit2 = ref(false);
+const fileList = ref([] as UploadFile[]);
 
 /** 后端返回的截止时间 */
 const deadline = ref(1977323487467);
+//删除图片
+const handleRemove = (file: UploadFile) => {
+  for (let i = 0; i < fileList.value.length; i++) {
+    if (fileList.value[i].uid === file.uid) {
+      fileList.value.splice(i, 1);
+      break;
+    }
+  }
+};
+//预览图片
+const handlePictureCardPreview = (file: UploadFile) => {};
+//下载图片
+const handleDownload = (file: UploadFile) => {
+  console.log(file);
+};
 </script>
 
 <template>
   <div>
     <h1>提交作业</h1>
+    <el-upload
+      action="#"
+      list-type="picture-card"
+      :auto-upload="false"
+      multiple
+      v-model:file-list="fileList"
+    >
+      <template #trigger>
+        <div class="trigger">
+          <IconifyIconOnline
+            icon="fluent-mdl2:circle-plus"
+            width="60px"
+            height="60px"
+          />
+        </div>
+      </template>
+      <template #file="{ file }">
+        <div class="card">
+          <img class="el-upload-list__item-thumbnail" :src="file.url" />
+          <span class="el-upload-list__item-actions">
+            <span
+              class="el-upload-list__item-preview"
+              @click="handlePictureCardPreview(file)"
+            >
+              <IconifyIconOnline icon="fluent-mdl2:zoom" />
+            </span>
+            <span
+              v-if="!disabled"
+              class="el-upload-list__item-delete"
+              @click="handleDownload(file)"
+            >
+              <IconifyIconOnline icon="fluent-mdl2:download" />
+            </span>
+            <span
+              v-if="!disabled"
+              class="el-upload-list__item-delete"
+              @click="handleRemove(file)"
+            >
+              <IconifyIconOnline icon="fluent-mdl2:delete" />
+            </span>
+          </span>
+          <div class="fileName" :title="file.name">{{ file.name }}</div>
+        </div>
+      </template>
+    </el-upload>
+
     <div class="header">
       <el-switch
         v-model="accordion"
@@ -132,6 +197,35 @@ const deadline = ref(1977323487467);
 </template>
 
 <style scoped lang="scss">
+$cardWidth: 300px;
+
+::v-deep(.el-upload-list--picture-card) {
+  .el-upload-list__item {
+    width: $cardWidth;
+    .card {
+      width: $cardWidth;
+      overflow: hidden;
+
+      .el-upload-list__item-thumbnail {
+        height: 80%;
+        width: 100%;
+      }
+      .el-upload-list__item-actions {
+        height: 80%;
+      }
+      .fileName {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-align: center;
+      }
+    }
+  }
+  .el-upload--picture-card {
+    width: $cardWidth;
+  }
+}
+
 .header {
   display: flex;
   justify-content: space-between;

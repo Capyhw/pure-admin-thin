@@ -1,52 +1,5 @@
 <template>
   <div>
-    <el-upload
-      action="#"
-      list-type="picture-card"
-      :auto-upload="false"
-      multiple
-      v-model:file-list="fileList"
-    >
-      <template #trigger>
-        <div class="trigger">
-          <IconifyIconOnline
-            icon="fluent-mdl2:circle-plus"
-            width="60px"
-            height="60px"
-          />
-        </div>
-      </template>
-      <template #file="{ file }">
-        <div class="card">
-          <img class="el-upload-list__item-thumbnail" :src="file.url" />
-          <span class="el-upload-list__item-actions">
-            <span
-              class="el-upload-list__item-preview"
-              @click="handlePictureCardPreview(file)"
-            >
-              <IconifyIconOnline icon="fluent-mdl2:zoom" />
-            </span>
-            <span
-              v-if="!disabled"
-              class="el-upload-list__item-delete"
-              @click="handleDownload(file)"
-            >
-              <IconifyIconOnline icon="fluent-mdl2:download" />
-            </span>
-            <span
-              v-if="!disabled"
-              class="el-upload-list__item-delete"
-              @click="handleRemove(file)"
-            >
-              <IconifyIconOnline icon="fluent-mdl2:delete" />
-            </span>
-          </span>
-          <div class="fileName" :title="file.name">{{ file.name }}</div>
-        </div>
-      </template>
-    </el-upload>
-
-    <!-- <img :src="dialogImageUrl" alt="Preview Image" /> -->
     <div class="mark-paper__container" ref="containerRef">
       <div class="mark-paper__wrap" ref="wrapRef">
         <!-- <div class="mark-paper__mask" v-show="isLoading">图片加载中</div> -->
@@ -147,7 +100,6 @@
           >
             <el-radio :label="0">移动</el-radio>
             <el-radio :label="1">画笔</el-radio>
-            <el-radio :label="2">橡皮擦</el-radio>
           </el-radio-group>
         </div>
         <div class="mark-paper__colorselect">
@@ -162,8 +114,6 @@
               <span class="demo-color-block" @click="handleColorChange(color)">
                 <el-color-picker v-model="colorList[index]" />
               </span>
-
-              />
             </el-tooltip>
           </div>
         </div>
@@ -176,9 +126,7 @@
 <script lang="ts" setup>
 import { ref, onBeforeUnmount } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-// import { Delete, Download, Plus, ZoomIn } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
-import type { UploadFile } from "element-plus";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { urlToBase64 } from "@pureadmin/utils";
@@ -186,8 +134,6 @@ defineOptions({
   name: "CorrectHomework"
 });
 
-const disabled = ref(false);
-const fileList = ref([] as UploadFile[]);
 const isLoading = ref(true);
 /** 当前位移的距离 */
 const translatePointX = ref(0);
@@ -207,7 +153,6 @@ const fillImageSrc = ref("");
 const canvasCurrentHistory = ref(1);
 const MOVE_MODE = 0;
 const LINE_MODE = 1;
-const ERASER_MODE = 2;
 const mouseMode = ref(LINE_MODE);
 const colorList = ref([
   "#fa4b2a",
@@ -342,8 +287,13 @@ const generateLinePoint = (x: number, y: number) => {
 
   // 缩放位移坐标变化规律
   // (transformOrigin - downX) / scale * (scale-1) + downX - translateX = pointX
-  x -= mainContainerMarginLeft.value;
-  y -= 85;
+  // 滚动条高度/宽度
+  const top =
+    document.querySelector(".app-main .el-scrollbar__wrap")?.scrollTop || 0;
+  const left =
+    document.querySelector(".app-main .el-scrollbar__wrap")?.scrollLeft || 0;
+  x = x - mainContainerMarginLeft.value + left;
+  y = y - 85 + top;
   const pointX: number =
     ((wrapWidth / 2 - x) / canvasScale.value) * (canvasScale.value - 1) +
     x -
@@ -407,54 +357,7 @@ const handleLineMode = (downX: number, downY: number) => {
     canvas.onmouseup = null;
   };
 };
-// 目前橡皮擦还有点问题，前端显示正常，保存图片下来，擦除的痕迹会变成白色
-const handleEraserMode = (downX: number, downY: number) => {
-  const { value: canvas } = canvasRef;
-  const { value: wrap } = wrapRef;
-  const context: CanvasRenderingContext2D | undefined | null =
-    canvas?.getContext("2d", { willReadFrequently: true });
-  if (!canvas || !wrap || !context) return;
 
-  const offsetLeft: number = canvas.offsetLeft;
-  const offsetTop: number = canvas.offsetTop;
-  downX = downX - offsetLeft;
-  downY = downY - offsetTop;
-
-  const { pointX, pointY } = generateLinePoint(downX, downY);
-
-  context.beginPath();
-  context.moveTo(pointX, pointY);
-
-  canvas.onmousemove = null;
-  canvas.onmousemove = (event: MouseEvent) => {
-    const moveX: number = event.pageX - offsetLeft;
-    const moveY: number = event.pageY - offsetTop;
-    const { pointX, pointY } = generateLinePoint(moveX, moveY);
-    context.globalCompositeOperation = "destination-out";
-    context.lineWidth = lineWidth.value;
-    context.lineTo(pointX, pointY);
-    context.stroke();
-  };
-  canvas.onmouseup = () => {
-    const imageData: ImageData = context.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-    if (canvasCurrentHistory.value < canvasHistroyList.value.length) {
-      canvasHistroyList.value = canvasHistroyList.value.slice(
-        0,
-        canvasCurrentHistory.value
-      );
-    }
-    canvasHistroyList.value.push(imageData);
-    canvasCurrentHistory.value += 1;
-    context.closePath();
-    canvas.onmousemove = null;
-    canvas.onmouseup = null;
-  };
-};
 /** 监听鼠标滚轮，实现缩放 */
 const handleCanvas = () => {
   const { value: canvas } = canvasRef;
@@ -477,15 +380,13 @@ const handleCanvas = () => {
       case LINE_MODE:
         handleLineMode(downX, downY);
         break;
-      case ERASER_MODE:
-        handleEraserMode(downX, downY);
-        break;
       default:
         break;
     }
   };
   wrap.onmousewheel = null;
   wrap.onmousewheel = (e: WheelEvent) => {
+    e.preventDefault();
     const { deltaY } = e;
     const newScale: number =
       deltaY > 0
@@ -540,6 +441,8 @@ const fillImageList = [
 const handlePaperChange = (value: string) => {
   console.log(value);
   handleCanvas();
+  const { value: canvas } = canvasRef;
+  canvas.classList.add("mark-paper__canvas__active");
 };
 /** 撤销 */
 const handleRollBack = () => {
@@ -584,11 +487,6 @@ const handleMouseModeChange = (value: number) => {
       canvas.style.cursor = `url('https://api.iconify.design/fxemoji:pencil.svg') 6 26, pointer`;
       wrap.style.cursor = "default";
       break;
-    case ERASER_MODE:
-      ElMessage.warning("橡皮擦功能尚未完善，保存图片会出现错误");
-      canvas.style.cursor = `url('https://api.iconify.design/mdi:eraser.svg') 6 26, pointer`;
-      wrap.style.cursor = "default";
-      break;
     default:
       canvas.style.cursor = "default";
       wrap.style.cursor = "default";
@@ -615,23 +513,7 @@ const handleSaveClick = () => {
   const url = URL.createObjectURL(blob);
   console.log(url);
 };
-//删除图片
-const handleRemove = (file: UploadFile) => {
-  for (let i = 0; i < fileList.value.length; i++) {
-    if (fileList.value[i].uid === file.uid) {
-      fileList.value.splice(i, 1);
-      break;
-    }
-  }
-};
-//预览图片
-const handlePictureCardPreview = (file: UploadFile) => {
-  fillImageSrc.value = file.url!;
-};
-//下载图片
-const handleDownload = (file: UploadFile) => {
-  console.log(file);
-};
+
 /** 获取div .main-container的margin-left */
 const getMainContainerMarginLeft = () => {
   const marginLeft: string = getComputedStyle(
@@ -655,43 +537,25 @@ onBeforeUnmount(() => {
 });
 </script>
 <style lang="scss" scoped>
-$cardWidth: 300px;
-
-::v-deep(.el-upload-list--picture-card) {
-  .el-upload-list__item {
-    width: $cardWidth;
-    .card {
-      width: $cardWidth;
-      overflow: hidden;
-
-      .el-upload-list__item-thumbnail {
-        height: 80%;
-        width: 100%;
-      }
-      .el-upload-list__item-actions {
-        height: 80%;
-      }
-      .fileName {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        text-align: center;
-      }
-    }
-  }
-  .el-upload--picture-card {
-    width: $cardWidth;
-  }
-}
-
 .mark-paper__container {
   display: flex;
   justify-content: space-between;
   .mark-paper__wrap {
     overflow: hidden;
+    .mark-paper__canvas__active {
+      border: 2px solid #7695dc;
+    }
   }
   .mark-paper__sider {
-    margin-left: 10px;
+    margin-right: 10px;
+    width: auto;
+    min-height: 600px;
+    border: 2px solid #7695dc;
+    padding: 20px 10px;
+    background-color: aliceblue;
+    > div {
+      margin-bottom: 10px;
+    }
     .mark-paper__action {
       display: flex;
       align-items: center;

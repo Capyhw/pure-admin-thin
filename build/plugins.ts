@@ -21,11 +21,11 @@ export function getPluginsList(
   const lifecycle = process.env.npm_lifecycle_event;
   return [
     vue(),
+    DefineOptions(),
     // jsx、tsx语法支持
     vueJsx(),
     VITE_CDN ? cdn : null,
     configCompressPlugin(VITE_COMPRESSION),
-    DefineOptions(),
     // 线上环境删除console
     removeConsole({ external: ["src/assets/iconfont/iconfont.js"] }),
     viteBuildInfo(),
