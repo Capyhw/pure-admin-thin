@@ -101,13 +101,6 @@ export function useTags() {
       divided: true,
       disabled: false,
       show: true
-    },
-    {
-      icon: Fullscreen,
-      text: "内容区全屏",
-      divided: false,
-      disabled: false,
-      show: true
     }
   ]);
 

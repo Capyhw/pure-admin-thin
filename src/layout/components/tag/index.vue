@@ -297,19 +297,6 @@ function onClickDrop(key, item, selectRoute?: RouteConfigs) {
         }
       }, 100);
       break;
-    case 7:
-      // 内容区全屏
-      onContentFullScreen();
-      setTimeout(() => {
-        if (pureSetting.hiddenSideBar) {
-          tagsViews[7].icon = ExitFullscreen;
-          tagsViews[7].text = "内容区退出全屏";
-        } else {
-          tagsViews[7].icon = Fullscreen;
-          tagsViews[7].text = "内容区全屏";
-        }
-      }, 100);
-      break;
   }
   setTimeout(() => {
     showMenuModel(route.fullPath, route.query);

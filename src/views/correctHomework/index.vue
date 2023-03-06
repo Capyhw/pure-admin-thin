@@ -600,6 +600,20 @@ const handleSaveClick = () => {
   const { value: canvas } = canvasRef;
   // 可存入数据库或是直接生成图片
   console.log(canvas?.toDataURL());
+  const dataURL = canvas
+    .toDataURL("image/png")
+    .replace(/^data:image\/(png|jpg);base64,/, "");
+  const imageData = atob(dataURL);
+  const arrayBuffer = new ArrayBuffer(imageData.length);
+  const uint8Array = new Uint8Array(arrayBuffer);
+
+  for (let i = 0; i < imageData.length; i++) {
+    uint8Array[i] = imageData.charCodeAt(i);
+  }
+
+  const blob = new Blob([arrayBuffer], { type: "image/png" });
+  const url = URL.createObjectURL(blob);
+  console.log(url);
 };
 //删除图片
 const handleRemove = (file: UploadFile) => {
