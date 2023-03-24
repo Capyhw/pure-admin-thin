@@ -7,6 +7,7 @@
           v-loading="isLoading"
           ref="canvasRef"
           class="mark-paper__canvas"
+          style="width: 55vw"
         >
           <p>很可惜，这个东东与您的电脑不搭！</p>
         </canvas>
@@ -220,6 +221,7 @@ watch(canvasRef, () => {
   fillImage();
   handleCanvas();
 });
+const canvasScale2 = ref(1);
 const fillImage = async () => {
   console.log(1);
 
@@ -244,6 +246,8 @@ const fillImage = async () => {
     // const centerY: number = canvas && canvas.height / 2 - img.height / 2 || 0
     canvas.width = img.width;
     canvas.height = img.height;
+
+    canvasScale2.value = (window.innerWidth * 0.5) / img.width;
 
     // 背景设置为图片，橡皮擦的效果才能出来
     canvas.style.background = `url(${img.src})`;
@@ -316,6 +320,11 @@ const generateLinePoint = (x: number, y: number) => {
     document.querySelector(".app-main .el-scrollbar__wrap")?.scrollLeft || 0;
   x = x - mainContainerMarginLeft.value + left;
   y = y - 85 + top;
+  console.log(canvasScale2.value, wrapWidth, x);
+
+  const rect = canvasRef.value.getBoundingClientRect();
+  x = (x * canvasRef.value.width) / rect.width;
+  y = (y * canvasRef.value.height) / rect.height;
   const pointX: number =
     ((wrapWidth / 2 - x) / canvasScale.value) * (canvasScale.value - 1) +
     x -
@@ -415,7 +424,7 @@ const handleCanvas = () => {
       deltaY > 0
         ? (canvasScale.value * 10 - 0.1 * 10) / 10
         : (canvasScale.value * 10 + 0.1 * 10) / 10;
-    if (newScale < 0.1 || newScale > 2) return;
+    // if (newScale < 0.1 || newScale > 2) return;
     canvasScale.value = newScale;
   };
 };
@@ -553,6 +562,8 @@ const observer = new ResizeObserver(
 onMounted(() => {
   //开始监听
   observer.observe(document.querySelector(".main-container"));
+
+  console.log(window.innerWidth);
 });
 onBeforeUnmount(() => {
   //销毁监听
@@ -565,6 +576,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   .mark-paper__wrap {
     overflow: hidden;
+
     .mark-paper__canvas__active {
       border: 2px solid #7695dc;
     }
