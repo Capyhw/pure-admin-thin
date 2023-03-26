@@ -24,7 +24,8 @@ defineOptions({
 const router = useRouter();
 const loading = ref(false);
 const ruleFormRef = ref<FormInstance>();
-
+const registerFormRef = ref<FormInstance>();
+const isLogin = ref(true);
 const { initStorage } = useLayout();
 initStorage();
 
@@ -37,13 +38,22 @@ const ruleForm = reactive({
   password: "admin123"
 });
 
+/** 注册表单 */
+const registerForm = reactive({
+  username: "",
+  password: ""
+});
+
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
   await formEl.validate((valid, fields) => {
     if (valid) {
       useUserStoreHook()
-        .loginByUsername({ username: ruleForm.username, password: "admin123" })
+        .loginByUsername({
+          username: ruleForm.username,
+          password: ruleForm.password
+        })
         .then(res => {
           if (res.success) {
             // 获取后端路由
@@ -60,10 +70,44 @@ const onLogin = async (formEl: FormInstance | undefined) => {
   });
 };
 
+const onRegister = async (formEl: FormInstance | undefined) => {
+  loading.value = true;
+  if (!formEl) return;
+  await formEl.validate((valid, fields) => {
+    if (valid) {
+      useUserStoreHook()
+        .registerByUsername({
+          username: registerForm.username,
+          password: registerForm.password
+        })
+        .then(res => {
+          if (res.success) {
+            // 获取后端路由
+            initRouter().then(() => {
+              router.push("/");
+              message(res.data.message, { type: "success" });
+            });
+          } else {
+            useUserStoreHook().logOut();
+            message(res.data.message, { type: "error" });
+            loading.value = false;
+          }
+        });
+    } else {
+      loading.value = false;
+      return fields;
+    }
+  });
+};
+
 /** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {
   if (code === "Enter") {
-    onLogin(ruleFormRef.value);
+    if (isLogin.value) {
+      onLogin(ruleFormRef.value);
+    } else {
+      onRegister(registerFormRef.value);
+    }
   }
 }
 
@@ -99,8 +143,14 @@ onBeforeUnmount(() => {
           <Motion>
             <h2 class="outline-none">{{ title }}</h2>
           </Motion>
-
+          <el-switch
+            v-model="isLogin"
+            class="mb-2"
+            active-text="登录"
+            inactive-text="注册"
+          />
           <el-form
+            v-if="isLogin"
             ref="ruleFormRef"
             :model="ruleForm"
             :rules="loginRules"
@@ -147,6 +197,57 @@ onBeforeUnmount(() => {
                 @click="onLogin(ruleFormRef)"
               >
                 登录
+              </el-button>
+            </Motion>
+          </el-form>
+          <el-form
+            v-if="!isLogin"
+            ref="registerFormRef"
+            :model="registerForm"
+            :rules="loginRules"
+            size="large"
+          >
+            <Motion :delay="100">
+              <el-form-item
+                :rules="[
+                  {
+                    required: true,
+                    message: '请输入账号',
+                    trigger: 'blur'
+                  }
+                ]"
+                prop="username"
+              >
+                <el-input
+                  clearable
+                  v-model="registerForm.username"
+                  placeholder="账号"
+                  :prefix-icon="useRenderIcon(User)"
+                />
+              </el-form-item>
+            </Motion>
+
+            <Motion :delay="150">
+              <el-form-item prop="password">
+                <el-input
+                  clearable
+                  show-password
+                  v-model="registerForm.password"
+                  placeholder="密码"
+                  :prefix-icon="useRenderIcon(Lock)"
+                />
+              </el-form-item>
+            </Motion>
+
+            <Motion :delay="250">
+              <el-button
+                class="w-full mt-4"
+                size="default"
+                type="primary"
+                :loading="loading"
+                @click="onRegister(registerFormRef)"
+              >
+                注册
               </el-button>
             </Motion>
           </el-form>

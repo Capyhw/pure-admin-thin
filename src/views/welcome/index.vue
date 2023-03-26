@@ -18,7 +18,7 @@ watchEffect(() => {
 
 <template>
   <div>
-    <h1>Pure-Admin-Thin（非国际化版本）</h1>
+    <h1>教师端</h1>
     <el-button @click="send('我是前端')">点我发送websocket</el-button>
   </div>
 </template>
