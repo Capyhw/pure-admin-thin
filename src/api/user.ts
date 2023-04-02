@@ -45,3 +45,25 @@ export const refreshTokenApi = (data?: object) => {
 export const getRegister = (data?: object) => {
   return http.request<UserResult>("post", baseUrlApi("register"), { data });
 };
+
+/** 上传 */
+export const upload = (data?: object, config?: object) => {
+  return http.request<UserResult>(
+    "post",
+    baseUrlApi("upload"),
+    { data },
+    config
+  );
+};
+
+/** 发布作业 */
+export const publishHomework = (data?: object) => {
+  return http.request<UserResult>("post", baseUrlApi("publishHomework"), {
+    data
+  });
+};
+
+/** 获取已发布作业 */
+export const getHomeworks = (data?: object) => {
+  return http.request<UserResult>("get", baseUrlApi("getHomeworks"), { data });
+};
