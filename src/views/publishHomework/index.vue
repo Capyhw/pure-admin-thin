@@ -95,7 +95,10 @@ const submitForm = () => {
   publishHomework({
     title: form.value.title,
     deadline: form.value.deadline,
-    content: valueHtml.value
+    content: valueHtml.value,
+    isSubmit: false,
+    status: 0, //0:未提交 1:已提交 2:已批改
+    score: null
   }).then(res => {
     console.log(res);
   });

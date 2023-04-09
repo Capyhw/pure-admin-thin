@@ -7,7 +7,6 @@ import { createApp, Directive } from "vue";
 import { MotionPlugin } from "@vueuse/motion";
 // import { useEcharts } from "@/plugins/echarts";
 import { injectResponsiveStorage } from "@/utils/responsive";
-
 // import Table from "@pureadmin/table";
 // import PureDescriptions from "@pureadmin/descriptions";
 
@@ -21,9 +20,14 @@ import "element-plus/dist/index.css";
 // 导入字体图标
 import "./assets/iconfont/iconfont.js";
 import "./assets/iconfont/iconfont.css";
+// 如果您正在使用CDN引入，请删除下面一行。
+import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 
 const app = createApp(App);
 
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
 // 自定义指令
 import * as directives from "@/directives";
 // console.log(directives);
@@ -51,6 +55,7 @@ getServerConfig(app).then(async config => {
   injectResponsiveStorage(app, config);
   setupStore(app);
   app.use(MotionPlugin).use(ElementPlus);
+
   // .use(useEcharts);
   // .use(Table);
   // .use(PureDescriptions);

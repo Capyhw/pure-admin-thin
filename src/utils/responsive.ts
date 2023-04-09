@@ -23,7 +23,8 @@ export const injectResponsiveStorage = (app: App, config: ServerConfigs) => {
         showLogo: config.ShowLogo ?? true,
         showModel: config.ShowModel ?? "smart",
         multiTagsCache: config.MultiTagsCache ?? false
-      }
+      },
+      profile: Storage.getData("profile", nameSpace) ?? {}
     },
     config.MultiTagsCache
       ? {

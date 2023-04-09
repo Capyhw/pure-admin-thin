@@ -6,11 +6,12 @@ import { useNav } from "@/layout/hooks/useNav";
 import Breadcrumb from "./sidebar/breadCrumb.vue";
 import topCollapse from "./sidebar/topCollapse.vue";
 import Setting from "@iconify-icons/ri/settings-3-line";
-
+import { reactive, ref, onBeforeMount, getCurrentInstance } from "vue";
+import { getProfile, updateProfile } from "@/api/user";
+import { watch } from "vue";
 const {
   layout,
   device,
-  editInfo,
   logout,
   onPanel,
   pureApp,
@@ -18,6 +19,53 @@ const {
   avatarsStyle,
   toggleSideBar
 } = useNav();
+const dialogFormVisible = ref(false);
+const formLabelWidth = "140px";
+const form = reactive({
+  name: "",
+  studentID: "",
+  class: "",
+  phoneNumber: "",
+  email: ""
+});
+let storage = null;
+/** form持久化 */
+watch(form, () => {
+  storage.profile = {
+    ...form
+  };
+});
+const handlerGetProfile = async () => {
+  const { data } = await getProfile({
+    params: {
+      username: username.value
+    }
+  });
+  console.log(data["results"]);
+  const {
+    name,
+    studentID,
+    class: studentClass,
+    phoneNumber,
+    email
+  } = data["results"][0];
+  form.name = name;
+  form.studentID = studentID;
+  form.class = studentClass;
+  form.phoneNumber = phoneNumber;
+  form.email = email;
+  dialogFormVisible.value = true;
+};
+
+const handlerUpdatePJrofile = async () => {
+  const _result = await updateProfile({ username: username.value, ...form });
+  dialogFormVisible.value = false;
+};
+
+onBeforeMount(() => {
+  storage =
+    getCurrentInstance()!.appContext.app.config.globalProperties.$storage;
+});
 </script>
 
 <template>
@@ -54,7 +102,7 @@ const {
         </span>
         <template #dropdown>
           <el-dropdown-menu class="logout">
-            <el-dropdown-item @click="editInfo">
+            <el-dropdown-item @click="handlerGetProfile">
               <IconifyIconOnline
                 icon="material-symbols:edit"
                 style="margin-right: 5px"
@@ -79,6 +127,36 @@ const {
         <IconifyIconOffline :icon="Setting" />
       </span>
     </div>
+    <el-dialog v-model="dialogFormVisible" title="个人信息">
+      <el-form :model="form">
+        <el-form-item label="姓名" :label-width="formLabelWidth">
+          <el-input v-model="form.name" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="学号" :label-width="formLabelWidth">
+          <el-input v-model="form.studentID" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="手机号" :label-width="formLabelWidth">
+          <el-input v-model="form.phoneNumber" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="邮箱" :label-width="formLabelWidth">
+          <el-input v-model="form.email" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="班级" :label-width="formLabelWidth">
+          <el-select v-model="form.class" placeholder="请选择你的专业班级">
+            <el-option label="1904051" value="1904051" />
+            <el-option label="1904052" value="1904052" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogFormVisible = false">取消</el-button>
+          <el-button type="primary" @click="handlerUpdatePJrofile">
+            保存
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
