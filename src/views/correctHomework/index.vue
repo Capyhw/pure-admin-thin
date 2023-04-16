@@ -142,6 +142,7 @@ import { ElMessage } from "element-plus";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { urlToBase64 } from "@pureadmin/utils";
+import { getHomeworkImages } from "@/api/user";
 defineOptions({
   name: "CorrectHomework"
 });
@@ -161,7 +162,7 @@ const isDrawing = ref(false);
 const wrapRef = ref(null);
 const containerRef = ref(null);
 const lineColor = ref("#fa4b2a");
-const lineWidth = ref(5);
+const lineWidth = ref(3);
 const canvasHistroyList = ref([]);
 const fillImageSrc = ref("");
 const canvasCurrentHistory = ref(1);
@@ -223,8 +224,6 @@ watch(canvasRef, () => {
 });
 const canvasScale2 = ref(1);
 const fillImage = async () => {
-  console.log(1);
-
   const { value: canvas } = canvasRef;
   const { value: wrap } = wrapRef;
   const context: CanvasRenderingContext2D | undefined | null =
@@ -274,7 +273,7 @@ const fillImage = async () => {
     canvasCurrentHistory.value = 1;
     setTimeout(() => {
       // isLoading.value = false;
-      console.log(isLoading.value);
+      // console.log(isLoading.value);
     }, 500);
   };
 };
@@ -320,7 +319,7 @@ const generateLinePoint = (x: number, y: number) => {
     document.querySelector(".app-main .el-scrollbar__wrap")?.scrollLeft || 0;
   x = x - mainContainerMarginLeft.value + left;
   y = y - 85 + top;
-  console.log(canvasScale2.value, wrapWidth, x);
+  // console.log(canvasScale2.value, wrapWidth, x);
 
   const rect = canvasRef.value.getBoundingClientRect();
   x = (x * canvasRef.value.width) / rect.width;
@@ -446,9 +445,8 @@ const fillImageList = [
     label: "一班",
     options: [
       {
-        value:
-          "https://img0.baidu.com/it/u=487873682,496212189&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=667",
-        label: "学生甲"
+        value: "http://127.0.0.1:3000/homework/7/1904052/19040500037/正面.jpg",
+        label: "正面"
       },
       {
         value:
@@ -559,11 +557,15 @@ const mainContainerMarginLeft = ref(210);
 const observer = new ResizeObserver(
   useDebounceFn(getMainContainerMarginLeft, 100)
 );
-onMounted(() => {
+onMounted(async () => {
   //开始监听
   observer.observe(document.querySelector(".main-container"));
-
-  console.log(window.innerWidth);
+  const { result } = await getHomeworkImages();
+  console.log(result[1]["classes"][0]["students"][0]["images"][0]["path"]);
+  const url = result[1]["classes"][0]["students"][0]["images"][0][
+    "path"
+  ].replace("public", "http://127.0.0.1:3000/");
+  fillImageSrc.value = url;
 });
 onBeforeUnmount(() => {
   //销毁监听

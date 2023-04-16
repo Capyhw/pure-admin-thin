@@ -7,10 +7,13 @@ import {
   getCurrentInstance
 } from "vue";
 import { dayjs, type UploadFile, ElMessage } from "element-plus";
+import { useNav } from "@/layout/hooks/useNav";
 import {
   getHomeworks,
   submitHomework,
-  deleteSubmitedHomework
+  deleteSubmitedHomework,
+  getHomeworkStates,
+  getProfile
 } from "@/api/user";
 import type { UploadRawFile } from "element-plus";
 import "@wangeditor/editor/dist/css/style.css"; // 引入 css
@@ -19,7 +22,7 @@ defineOptions({
   // name 作为一种规范最好必须写上并且和路由的name保持一致
   name: "SubmitHomework"
 });
-
+const { username } = useNav();
 const hasHomework = ref(true);
 const value = ref("");
 /**  快捷选择 */
@@ -140,14 +143,36 @@ const handleCreated = editor => {
 
 /** 获取全部作业并赋值给表格数据 */
 const getAllHomeworks = async () => {
+  const { data } = await getProfile({
+    params: {
+      username: username.value
+    }
+  });
+  const { studentID } = data["results"][0];
+  const homeworkStates = await getHomeworkStates({
+    params: {
+      studentID
+    }
+  });
   const result = await getHomeworks();
-  result.data["results"].forEach(
-    item => (item.deadline = dayjs(item.deadline).format("YYYY-MM-DD HH:mm:ss"))
-  );
+  result.data["results"].forEach(item => {
+    item.deadline = dayjs(item.deadline).format("YYYY-MM-DD HH:mm:ss");
+    //从这个数组中返回homeworkID==ID的那个对象
+    const homeworkState = homeworkStates.data["results"].find(
+      homeworkState => homeworkState.homeworkID == item.id
+    );
+    if (homeworkState) {
+      item.status = homeworkState.states;
+      item.isSubmit = true;
+    } else {
+      item.status = 0;
+      item.isSubmit = false;
+    }
+  });
   console.log(result.data["results"]);
   tableData.value = result.data["results"];
 };
-onMounted(() => {
+onMounted(async () => {
   getAllHomeworks();
 });
 // 组件销毁时，也及时销毁编辑器
@@ -234,8 +259,8 @@ const destroyEditor = () => {
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.status === 0" type="danger">未提交</el-tag>
-            <el-tag v-else-if="row.status === 1" type="warning">已提交</el-tag>
+            <el-tag v-if="row.status == 0" type="danger">未提交</el-tag>
+            <el-tag v-else-if="row.status == 1" type="warning">已提交</el-tag>
             <el-tag v-else type="success">已批改</el-tag>
           </template>
         </el-table-column>

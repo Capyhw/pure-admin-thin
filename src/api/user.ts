@@ -68,6 +68,46 @@ export const getHomeworks = (data?: object) => {
   return http.request<UserResult>("get", baseUrlApi("getHomeworks"), { data });
 };
 
+/** 获取作业图片 */
+export const getHomeworkImages = (data?: object) => {
+  return http.request<UserResult>("get", baseUrlApi("getHomeworkImages"), {
+    data
+  });
+};
+
+/** 获取作业情况 */
+export const getHomeworkStates = (param, data?: object) => {
+  return http.request<UserResult>(
+    "get",
+    baseUrlApi("getHomeworkStates"),
+    param,
+    {
+      data
+    }
+  );
+};
+
+/** 删除已发布作业 */
+export const deletePublishedHomework = (param, data?: object) => {
+  return http.request<UserResult>(
+    "get",
+    baseUrlApi("deletePublishedHomework"),
+    param,
+    {
+      data
+    }
+  );
+};
+/** 修改已发布作业 */
+export const updatePublishedHomework = (data?: object) => {
+  return http.request<UserResult>(
+    "post",
+    baseUrlApi("updatePublishedHomework"),
+    {
+      data
+    }
+  );
+};
 /** 提交作业 */
 export const submitHomework = (data?: object, config?: object) => {
   return http.request<UserResult>(
@@ -89,6 +129,7 @@ export const deleteSubmitedHomework = (param, data?: object) => {
     }
   );
 };
+
 /** 获取个人信息 */
 export const getProfile = (param, data?: object) => {
   return http.request<UserResult>("get", baseUrlApi("getProfile"), param, {
