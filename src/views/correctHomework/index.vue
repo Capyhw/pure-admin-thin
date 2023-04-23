@@ -129,20 +129,54 @@
             <el-color-picker v-model="lineColor" class="select" />
           </div>
         </div>
-        <el-button @click="handleSaveClick">保存图片</el-button>
+        <div>选择要批改的作业批次及班级</div>
+        <el-tree-select
+          v-model="treeValue"
+          :data="treeData"
+          check-strictly
+          :render-after-expand="false"
+          show-checkbox
+          label="id"
+          value-key="id"
+          @check="handleTreeCheck"
+        />
+        <div>
+          <h4 v-if="fillImageList[currentStudentIndex]">
+            当前批改的学生学号：{{ fillImageList[currentStudentIndex]["id"] }}
+          </h4>
+
+          <div>
+            <el-button type="primary" @click="prevImage">上一张</el-button>
+            <el-button type="primary" @click="nextImage">下一张</el-button>
+          </div>
+        </div>
+        <el-button
+          @click="
+            handleSaveClick(
+              fillImageList[currentStudentIndex][`images`][currentImageIndex][
+                `name`
+              ]
+            )
+          "
+          >保存图片</el-button
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onBeforeUnmount } from "vue";
+import { ref, onBeforeUnmount, getCurrentInstance } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { urlToBase64 } from "@pureadmin/utils";
-import { getHomeworkImages } from "@/api/user";
+import {
+  getHomeworkImages,
+  saveCorrectedHomework,
+  postScore
+} from "@/api/user";
 defineOptions({
   name: "CorrectHomework"
 });
@@ -178,6 +212,110 @@ const colorList = ref([
   "#ffffff"
 ]);
 
+const treeValue = ref();
+const treeData = ref([]);
+const classID = ref();
+const homeworkID = ref();
+const handleTreeCheck = value => {
+  classID.value = value["id"];
+  homeworkID.value = value.children[0]["images"][0]["path"].split("\\")[2];
+  console.log(homeworkID.value);
+
+  fillImageList.value = value["children"];
+  fillImageSrc.value = fillImageList.value[0]["images"][0]["path"].replace(
+    "public",
+    "http://127.0.0.1:3000/"
+  );
+};
+const currentStudentIndex = ref(0);
+const currentImageIndex = ref(0);
+const storage = null;
+const score = ref("0");
+const prevImage = () => {
+  if (currentImageIndex.value === 0) {
+    //正在批改此人的第一张图片
+    if (currentStudentIndex.value === 0) {
+      ElMessage.error("已经是第一张了");
+      return;
+    } else {
+      ElMessage.error("已经是此人的第一张作业了，将加载上一位同学的作业！");
+      currentStudentIndex.value--;
+      currentImageIndex.value = 0;
+      fillImageSrc.value = fillImageList.value[currentStudentIndex.value][
+        "images"
+      ][currentImageIndex.value]["path"].replace(
+        "public",
+        "http://127.0.0.1:3000/"
+      );
+    }
+  } else {
+    currentImageIndex.value--;
+    fillImageSrc.value = fillImageList.value[currentStudentIndex.value][
+      "images"
+    ][currentImageIndex.value]["path"].replace(
+      "public",
+      "http://127.0.0.1:3000/"
+    );
+  }
+};
+const nextImage = () => {
+  if (
+    currentImageIndex.value ===
+    fillImageList.value[currentStudentIndex.value]["images"].length - 1
+  ) {
+    ElMessageBox.confirm(
+      "0-100分",
+      "请给出此同学分数",
+
+      {
+        confirmButtonText: "保存分数",
+        cancelButtonText: "取消",
+        type: "info",
+        showInput: true,
+        inputType: "number",
+        inputValue: score.value.toString()
+      }
+    )
+      .then(({ value }) => {
+        score.value = value;
+        console.log(value);
+        postScore({
+          score: score.value,
+          id: homeworkID.value,
+          studentID: fillImageList.value[currentStudentIndex.value]["id"]
+        });
+        //批改到此人的最后一张图片了
+        if (currentStudentIndex.value === fillImageList.value.length - 1) {
+          ElMessage.error("作业已经全部批改完了！");
+          return;
+        } else {
+          ElMessage.error("已经是最后一张了，批改下一位同学的作业！");
+          currentStudentIndex.value++;
+          currentImageIndex.value = 0;
+          fillImageSrc.value = fillImageList.value[currentStudentIndex.value][
+            "images"
+          ][currentImageIndex.value]["path"].replace(
+            "public",
+            "http://127.0.0.1:3000/"
+          );
+        }
+      })
+      .catch(() => {
+        ElMessage({
+          type: "info",
+          message: "Delete canceled"
+        });
+      });
+  } else {
+    currentImageIndex.value++;
+    fillImageSrc.value = fillImageList.value[currentStudentIndex.value][
+      "images"
+    ][currentImageIndex.value]["path"].replace(
+      "public",
+      "http://127.0.0.1:3000/"
+    );
+  }
+};
 watch(fillImageSrc, () => {
   isLoading.value = true;
   translatePointX.value = 0;
@@ -440,32 +578,7 @@ const handleColorChange = (color: string) => {
   lineColor.value = color;
 };
 /** 作业选项 */
-const fillImageList = [
-  {
-    label: "一班",
-    options: [
-      {
-        value: "http://127.0.0.1:3000/homework/7/1904052/19040500037/正面.jpg",
-        label: "正面"
-      },
-      {
-        value:
-          "https://img2.baidu.com/it/u=3192336871,2242501657&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
-        label: "学生乙"
-      }
-    ]
-  },
-  {
-    label: "二班",
-    options: [
-      {
-        value:
-          "https://5b0988e595225.cdn.sohucs.com/images/20200310/4e3b1ff6b04f480ea6c227ab161b9bf0.jpeg",
-        label: "学生丙"
-      }
-    ]
-  }
-];
+const fillImageList = ref([]);
 
 /** 切换作业 */
 const handlePaperChange = (value: string) => {
@@ -524,10 +637,15 @@ const handleMouseModeChange = (value: number) => {
   }
 };
 /** 保存图片 */
-const handleSaveClick = () => {
+const handleSaveClick = async fileName => {
   const { value: canvas } = canvasRef;
-  // 可存入数据库或是直接生成图片
-  console.log(canvas?.toDataURL());
+  const obj = {
+    studentID: fillImageList.value[currentStudentIndex.value]["id"], //学号
+    score: score.value,
+    class: classID.value,
+    id: homeworkID.value
+  };
+
   const dataURL = canvas
     .toDataURL("image/png")
     .replace(/^data:image\/(png|jpg);base64,/, "");
@@ -540,8 +658,17 @@ const handleSaveClick = () => {
   }
 
   const blob = new Blob([arrayBuffer], { type: "image/png" });
-  const url = URL.createObjectURL(blob);
-  console.log(url);
+  const formData = new FormData();
+  formData.append("image", blob, encodeURIComponent(fileName));
+  for (const key in obj) {
+    formData.append(key, obj[key]);
+  }
+  const { result } = await saveCorrectedHomework(formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+  console.log(result);
 };
 
 /** 获取div .main-container的margin-left */
@@ -561,11 +688,8 @@ onMounted(async () => {
   //开始监听
   observer.observe(document.querySelector(".main-container"));
   const { result } = await getHomeworkImages();
-  console.log(result[1]["classes"][0]["students"][0]["images"][0]["path"]);
-  const url = result[1]["classes"][0]["students"][0]["images"][0][
-    "path"
-  ].replace("public", "http://127.0.0.1:3000/");
-  fillImageSrc.value = url;
+  treeData.value = result;
+  console.log(treeData.value);
 });
 onBeforeUnmount(() => {
   //销毁监听

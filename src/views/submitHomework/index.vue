@@ -13,7 +13,9 @@ import {
   submitHomework,
   deleteSubmitedHomework,
   getHomeworkStates,
-  getProfile
+  getProfile,
+  getHomeworkImages,
+  getScore
 } from "@/api/user";
 import type { UploadRawFile } from "element-plus";
 import "@wangeditor/editor/dist/css/style.css"; // 引入 css
@@ -51,10 +53,7 @@ const fileList = ref([] as UploadFile[]);
 const tableData = ref([]);
 const dialogVisible = ref(false);
 let storage = null;
-onBeforeMount(() => {
-  storage =
-    getCurrentInstance()!.appContext.app.config.globalProperties.$storage;
-});
+
 //删除图片
 const handleRemove = async row => {
   deleteSubmitedHomework({
@@ -71,12 +70,6 @@ const handleRemove = async row => {
       console.log(err);
     });
 };
-// //预览图片
-// const handlePictureCardPreview = (file: UploadFile) => {};
-// //下载图片
-// const handleDownload = (file: UploadFile) => {
-//   console.log(file);
-// };
 const beforeUpload = (rawFile: UploadRawFile, row: IROW) => {
   const type = ["image/jpeg", "image/jpg", "image/png"];
   if (type.indexOf(rawFile.type) === -1) {
@@ -130,7 +123,6 @@ const openDialog = (row: IROW) => {
 };
 // 编辑器实例，必须用 shallowRef
 const editorRef = shallowRef();
-
 // 内容 HTML
 const valueHtml = ref("<p>hello</p>");
 const toolbarConfig = {
@@ -140,8 +132,18 @@ const editorConfig = { placeholder: "请输入内容...", readOnly: true };
 const handleCreated = editor => {
   editorRef.value = editor; // 记录 editor 实例，重要！
 };
-
+/** 查看批改后的作业 */
+const handleOpen = (row: IROW) => {
+  showViewer.value[row.id] = true;
+  allImgList.forEach(item => {
+    if (item.id == row.id) {
+      imgList.value = item.imgList;
+    }
+  });
+  console.log(imgList.value);
+};
 /** 获取全部作业并赋值给表格数据 */
+const scoreObj = ref({});
 const getAllHomeworks = async () => {
   const { data } = await getProfile({
     params: {
@@ -155,8 +157,20 @@ const getAllHomeworks = async () => {
     }
   });
   const result = await getHomeworks();
+  const scoreResult = await getScore({
+    params: {
+      studentID
+    }
+  });
+
+  scoreResult.data["results"].forEach(item => {
+    scoreObj.value[item.homeworkID] = item.score;
+  });
+  console.log(scoreObj.value);
+
   result.data["results"].forEach(item => {
     item.deadline = dayjs(item.deadline).format("YYYY-MM-DD HH:mm:ss");
+    item.score = scoreObj.value[item.id];
     //从这个数组中返回homeworkID==ID的那个对象
     const homeworkState = homeworkStates.data["results"].find(
       homeworkState => homeworkState.homeworkID == item.id
@@ -169,11 +183,54 @@ const getAllHomeworks = async () => {
       item.isSubmit = false;
     }
   });
-  console.log(result.data["results"]);
   tableData.value = result.data["results"];
+  console.log(tableData.value);
 };
+onBeforeMount(() => {
+  storage =
+    getCurrentInstance()!.appContext.app.config.globalProperties.$storage;
+});
+const allImgList = [];
+const imgList = ref([]);
+const showViewer = ref({});
 onMounted(async () => {
-  getAllHomeworks();
+  await getAllHomeworks();
+  const { result } = await getHomeworkImages();
+  const res = [];
+  const { class: class_, studentID } = storage.profile;
+  result.forEach(item => {
+    tableData.value.forEach(item2 => {
+      //找到作业
+      if (item2.id == item.id) {
+        item.children.forEach(item3 => {
+          //找到班级
+          if (item3.id == class_) {
+            item3.children.forEach(item4 => {
+              //找到学生
+              if (item4.id == studentID) {
+                res.push({
+                  id: item.id,
+                  imgPath: item4.images
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+
+  res.forEach(item => {
+    showViewer.value[item.id] = false;
+    const tmp_imgList = [];
+    item.imgPath.forEach(item2 => {
+      tmp_imgList.push(item2.path.replace("public", "http://127.0.0.1:3000/"));
+    });
+    allImgList.push({
+      id: item.id,
+      imgList: [...tmp_imgList]
+    });
+  });
 });
 // 组件销毁时，也及时销毁编辑器
 const destroyEditor = () => {
@@ -236,16 +293,15 @@ const destroyEditor = () => {
                 </el-button>
               </template>
             </el-upload>
+
             <el-button
               v-else
               type="success"
-              :disabled="
-                Date.now() - new Date(row.deadline).getTime() <= 0
-                  ? true
-                  : false
-              "
+              :disabled="row.status != 2"
+              @click="handleOpen(row)"
               >查看
             </el-button>
+
             <el-button
               v-if="row.isSubmit"
               type="danger"
@@ -255,6 +311,14 @@ const destroyEditor = () => {
               @click="handleRemove(row)"
               >删除
             </el-button>
+            <div class="demo-image__preview">
+              <el-image-viewer
+                v-if="showViewer[row.id]"
+                @close="showViewer[row.id] = false"
+                :teleported="true"
+                :url-list="imgList"
+              />
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">
@@ -267,6 +331,7 @@ const destroyEditor = () => {
         <el-table-column prop="score" label="成绩" width="100" />
       </el-table>
     </div>
+
     <el-dialog
       v-model="dialogVisible"
       title="作业详情"

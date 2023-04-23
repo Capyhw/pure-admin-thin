@@ -1,6 +1,11 @@
 <template>
   <div>
-    <el-button @click="handlerPublishHomework">发布作业</el-button>
+    <el-button @click="handlerPublishHomework" type="success"
+      >发布作业</el-button
+    >
+    <el-button @click="handlerDownloadHomework" type="primary"
+      >打包下载所有作业</el-button
+    >
     <div class="homeTable">
       <el-table :data="tableData" stripe style="width: 100%">
         <el-table-column type="index" :index="index => index + 1" />
@@ -22,14 +27,13 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <!-- <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.status === 0" type="danger">未提交</el-tag>
             <el-tag v-else-if="row.status === 1" type="warning">已提交</el-tag>
             <el-tag v-else type="success">已批改</el-tag>
           </template>
-        </el-table-column>
-        <!-- <el-table-column prop="score" label="成绩" width="100" /> -->
+        </el-table-column> -->
       </el-table>
     </div>
     <!-- 作业详情 -->
@@ -141,7 +145,8 @@ import {
   publishHomework,
   getHomeworks,
   deletePublishedHomework,
-  updatePublishedHomework
+  updatePublishedHomework,
+  downloadHomework
 } from "@/api/user";
 import { dayjs } from "element-plus";
 
@@ -193,6 +198,17 @@ const getAllHomeworks = async () => {
   console.log(result.data["results"]);
   tableData.value = result.data["results"];
   return result.data["results"];
+};
+/** 打包下载所有作业 */
+const handlerDownloadHomework = async () => {
+  downloadHomework().then(response => {
+    const url = window.URL.createObjectURL(response);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "homework.zip");
+    document.body.appendChild(link);
+    link.click();
+  });
 };
 onMounted(() => {
   getAllHomeworks();

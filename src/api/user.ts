@@ -75,6 +75,32 @@ export const getHomeworkImages = (data?: object) => {
   });
 };
 
+/** 保存批改后的图片 */
+export const saveCorrectedHomework = (data?: object, config?: object) => {
+  return http.request<UserResult>(
+    "post",
+    baseUrlApi("saveCorrectedHomework"),
+    {
+      data
+    },
+    config
+  );
+};
+
+/** 给出分数 */
+export const postScore = (data?: object) => {
+  return http.request<UserResult>("post", baseUrlApi("postScore"), {
+    data
+  });
+};
+
+/** 获取分数 */
+export const getScore = (param, data?: object) => {
+  return http.request<UserResult>("get", baseUrlApi("getScore"), param, {
+    data
+  });
+};
+
 /** 获取作业情况 */
 export const getHomeworkStates = (param, data?: object) => {
   return http.request<UserResult>(
@@ -141,5 +167,15 @@ export const getProfile = (param, data?: object) => {
 export const updateProfile = (data?: object) => {
   return http.request<UserResult>("post", baseUrlApi("updateProfile"), {
     data
+  });
+};
+
+/** 下载作业 */
+export const downloadHomework = () => {
+  return http.request<UserResult>("get", baseUrlApi("downloadHomework"), {
+    responseType: "blob",
+    headers: {
+      "Content-Type": "application/octet-stream"
+    }
   });
 };
